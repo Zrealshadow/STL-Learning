@@ -23,10 +23,23 @@ add_executable(
 )
 
 add_executable(
+  heap_test
+  heap_test.cc
+)
+
+add_executable(
+  avltree_test
+  avltree_test.cc
+)
+
+add_executable(
     all_test
+    avltree_test.cc
     world_test.cc
     hello_test.cc
+    heap_test.cc
 )
+
 
 target_link_libraries(
   hello_test
@@ -39,13 +52,24 @@ target_link_libraries(
 )
 
 target_link_libraries(
+  heap_test
+  gtest_main
+)
+target_link_libraries(
     all_test
     gtest_main
+)
+
+target_link_libraries(
+  avltree_test
+  gtest_main
 )
 
 include(GoogleTest)
 gtest_discover_tests(
     hello_test
     world_test
+    heap_test
+    avltree_test
     all_test
-    )
+)
