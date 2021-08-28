@@ -33,6 +33,7 @@ class AVLTree
 		bool __check_avl_constrain();
 		AVLTree<T>::TreePointer __update_height(TreePointer newNode);
 		TreePointer __insert_axu(TreePointer startNode, T& v);
+		TreePointer __find_axu(TreePointer startNode, T& v);
 		void __adjust_tree(TreePointer startNode);
 
 		void __single_rotate(TreePointer startNode, bool isLL);
@@ -44,6 +45,7 @@ class AVLTree
 		~AVLTree(){};
 		explicit AVLTree(const std::vector<T> & v);
 		void Insert(T v);
+		TreePointer find(T v);
 		void Erase(T v);
 		void Display();
 };
@@ -66,19 +68,34 @@ void AVLTree<T>::Insert(T v){
 	TreePointer questionNode = __update_height(newNode);
 	if(questionNode == nullptr) return;
 	// it update to root node, no need to rotate sub tree.
-
-
+	__adjust_tree(questionNode);
 }
 
 template<class T>
 void AVLTree<T>::Erase(T v){
+	TreePointer eraseNode = __find_axu(root, v);
+	if(eraseNode == nullptr) {
+		//Print msg
+		return;
+	}
+	// delete it
+	TreePointer eraseParentNode = eraseNode->prev;
+	TreePointer questionNode = __update_height(eraseNode);
+	if(questionNode == nullptr) return;
+	__adjust_tree(questionNode);
+}
 
+template<class T>
+AVLTree<T>::TreePointer AVLTree<T>::find(T v){
+	return __find_axu(root, v);
 }
 
 template<class T>
 void AVLTree<T>::Display(){
 
 }
+
+/* --------------------------- Private Helper Function -------------------------------*/
 
 
 // return the new inserted node
@@ -99,6 +116,18 @@ AVLTree<T>::TreePointer AVLTree<T>::__insert_axu(TreePointer startNode,T& v){
 	}
 }
 
+template<class T>
+AVLTree<T>::TreePointer AVLTree<T>::__find_axu(TreePointer startNode, T& v){
+	if(startNode == nullptr) return nullptr;
+
+	if(startNode->data == v) 
+		return startNode;
+	else if(startNode->data > v) 
+		return __find_axu(startNode->left, v);
+	else 
+		return __find_axu(startNode->right, v); 
+}
+
 
 template<class T>
 AVLTree<T>::TreePointer AVLTree<T>::__update_height(TreePointer startNode){
@@ -115,6 +144,20 @@ AVLTree<T>::TreePointer AVLTree<T>::__update_height(TreePointer startNode){
 template<class T>
 void AVLTree<T>::__adjust_tree(TreePointer startNode){
 	// have to judge single rotate or double rotate
+	if(startNode->right->height > startNode->left->height){
+		TreePointer subNode = startNode->right;
+		if(subNode->right->height > startNode->left->height) 
+			__single_rotate(startNode, false);  // RL
+		else
+			__double_rotate(startNode, false)   // RL
+	} else {
+		TreePointer subNode = startNode->left;
+		if(subNode->right->height > startNode->left->height)
+			__double_rotate(startNode, true) // LR
+		else
+			__single_rotate(startNode, true) // LL
+	}
+
 }
 
 
@@ -123,14 +166,31 @@ void AVLTree<T>::__double_rotate(TreePointer startNode, bool isLR){
 	TreePointer ParentNode = startNode->prev;
 	if(isLR){
 		/*
-
-
-
+			    18
+		      /	   \	     							   18
+			14		20			 RR						 /    \	
+		  /    \			 ===========>				16	  20
+		12		16									    /
+			   /									  14
+			15										/   \
+												   12   15
 		*/
+		__single_rotate(startNode->left, false);
+		startNode->left->height++;
+		/*
+			LL
+		*/
+		__single_rotate(startNode, true);
 	} else {
 		/*
-		
+			LL
 		*/
+		__single_rotate(startNode->right, true);
+		startNode->right->height++;
+		/*
+			RR
+		*/
+		__single_rotate(startNode,false);
 	}
 
 }
@@ -186,5 +246,8 @@ void AVLTree<T>::__single_rotate(TreePointer startNode, bool isLL){
 	}
 	// adjust the height of startnode a
 	startNode->height--;
+	// adjust the parent tree's sub pointer
+	if(ParentNode->right == startNode) ParentNode->right = b;
+	else ParentNode->left = b;
 	return;
 }
