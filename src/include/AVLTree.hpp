@@ -61,8 +61,8 @@ AVLTree<T>::AVLTree(const std::vector<T> & v){
 template<class T>
 void AVLTree<T>::Insert(T v){
 	if(root == nullptr){
-		root = new TreeValue(v)
-		return
+		root = new TreeValue(v);
+		return;
 	}
 	TreePointer newNode = __insert_axu(root, v);
 	TreePointer questionNode = __update_height(newNode);
@@ -86,7 +86,7 @@ void AVLTree<T>::Erase(T v){
 }
 
 template<class T>
-AVLTree<T>::TreePointer AVLTree<T>::find(T v){
+typename AVLTree<T>::TreePointer AVLTree<T>::find(T v){
 	return __find_axu(root, v);
 }
 
@@ -102,22 +102,29 @@ void AVLTree<T>::Display(){
 // the startNode can not be nullptr
 // the tree is not balanced
 template<class T>
-AVLTree<T>::TreePointer AVLTree<T>::__insert_axu(TreePointer startNode,T& v){
+typename AVLTree<T>::TreePointer AVLTree<T>::__insert_axu(TreePointer startNode,T& v){
 	assert(startNode != nullptr);
 	bool isLeft = startNode->data > v;
 	TreePointer next = isLeft ? startNode->left : startNode->right;
 	if(next != nullptr){
-		return __insert_axu(next, v);
-	} else {
-		// construct a new node
-		TreePointer node = new TreeValue(v, nullptr, nullptr, startNode);
-		if(isLeft) startNode->left = node;
-		else startNode->right = node;
+		TreePointer f = __insert_axu(next, v); // return __insert_axu(next, v);
+		return f;
 	}
+
+	TreePointer node = new TreeValue(v, nullptr, nullptr, startNode); // construct a new node
+	if(isLeft) {
+		// std::cout <<"left"<< std::endl;
+		startNode->left = node;
+	} else {
+		// std::cout << "right" << std::endl;
+		startNode->right = node;
+	}
+	return node;
+
 }
 
 template<class T>
-AVLTree<T>::TreePointer AVLTree<T>::__find_axu(TreePointer startNode, T& v){
+typename AVLTree<T>::TreePointer AVLTree<T>::__find_axu(TreePointer startNode, T& v){
 	if(startNode == nullptr) return nullptr;
 
 	if(startNode->data == v) 
@@ -130,7 +137,7 @@ AVLTree<T>::TreePointer AVLTree<T>::__find_axu(TreePointer startNode, T& v){
 
 
 template<class T>
-AVLTree<T>::TreePointer AVLTree<T>::__update_height(TreePointer startNode){
+typename AVLTree<T>::TreePointer AVLTree<T>::__update_height(TreePointer startNode){
 	if(startNode == nullptr) return nullptr;
 	int leftTreeHeight = startNode->left == nullptr ? -1 : startNode->left->height;
 	int rightTreeHeight = startNode->right == nullptr ? -1 : startNode->right->height;
@@ -138,7 +145,8 @@ AVLTree<T>::TreePointer AVLTree<T>::__update_height(TreePointer startNode){
 		return startNode;
 	}
 	startNode->height = leftTreeHeight > rightTreeHeight ? leftTreeHeight + 1 : rightTreeHeight + 1;
-	return startNode->prev;
+	// return startNode->prev;
+	return __update_height(startNode->prev);
 }
 
 template<class T>
@@ -149,13 +157,13 @@ void AVLTree<T>::__adjust_tree(TreePointer startNode){
 		if(subNode->right->height > startNode->left->height) 
 			__single_rotate(startNode, false);  // RL
 		else
-			__double_rotate(startNode, false)   // RL
+			__double_rotate(startNode, false);   // RL
 	} else {
 		TreePointer subNode = startNode->left;
 		if(subNode->right->height > startNode->left->height)
-			__double_rotate(startNode, true) // LR
+			__double_rotate(startNode, true); // LR
 		else
-			__single_rotate(startNode, true) // LL
+			__single_rotate(startNode, true); // LL
 	}
 
 }
@@ -200,6 +208,7 @@ template<class T>
 void AVLTree<T>::__single_rotate(TreePointer startNode, bool isLL){
 	TreePointer subRootNode;
 	TreePointer ParentNode = startNode->prev;
+	TreePointer a,b,c;
 	if(isLL){
 		/*
 			a->	 18                 		b->		14
@@ -211,7 +220,7 @@ void AVLTree<T>::__single_rotate(TreePointer startNode, bool isLL){
 		   11                                          
 		*/
 		subRootNode = startNode->left;
-		TreePointer a = startNode, b = startNode->left, c = startNode->left->right;
+		a = startNode, b = startNode->left, c = startNode->left->right;
 		b->prev = ParentNode;
 		b->right = a;
 		a->prev = b;
@@ -233,7 +242,7 @@ void AVLTree<T>::__single_rotate(TreePointer startNode, bool isLL){
 		   			    33                                         
 		*/
 		subRootNode = startNode->right;
-		TreePointer a = startNode, b = startNode->right, c = startNode->right->left;
+		a = startNode, b = startNode->right, c = startNode->right->left;
 		b->prev = ParentNode;
 		b->left = a;
 		
