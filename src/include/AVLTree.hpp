@@ -48,11 +48,18 @@ class AVLTree
 		TreePointer find(T v);
 		void Erase(T v);
 		void Display();
+		int getHeight();
+		int getSize();
+
+		// DEBUG
+		TreePointer getRoot();
 };
 #endif
 
 template<class T>
 AVLTree<T>::AVLTree(const std::vector<T> & v){
+	root = nullptr;
+	// initialize root is very important
 	for(int i = 0; i < v.size(); i++){
 		Insert(v.at(i));
 	}
@@ -93,6 +100,17 @@ typename AVLTree<T>::TreePointer AVLTree<T>::find(T v){
 template<class T>
 void AVLTree<T>::Display(){
 
+}
+
+
+template<class T>
+int AVLTree<T>::getHeight(){
+	return root->height;
+}
+
+template<class T>
+typename AVLTree<T>::TreePointer AVLTree<T>::getRoot(){
+	return root;
 }
 
 /* --------------------------- Private Helper Function -------------------------------*/
