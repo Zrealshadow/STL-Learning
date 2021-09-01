@@ -231,15 +231,21 @@ typename AVLTree<T>::TreePointer AVLTree<T>::__update_height(TreePointer startNo
 template<class T>
 void AVLTree<T>::__adjust_tree(TreePointer startNode){
 	// have to judge single rotate or double rotate
-	if(startNode->right->height > startNode->left->height){
+	int rightheight = startNode->right == nullptr ? -1 : startNode->right->height;
+	int leftheight = startNode->left == nullptr ? -1 : startNode->left->height;
+	if(rightheight > leftheight){
 		TreePointer subNode = startNode->right;
-		if(subNode->right->height > subNode->left->height) 
+		rightheight = subNode->right == nullptr ? -1 : subNode->right->height;
+		leftheight = subNode->left == nullptr ? -1 : subNode->left->height;
+		if(rightheight > leftheight) 
 			__single_rotate(startNode, false);  // RR
 		else
 			__double_rotate(startNode, false);   // RL
 	} else {
 		TreePointer subNode = startNode->left;
-		if(subNode->right->height > subNode->left->height)
+		rightheight = subNode->right == nullptr ? -1 : subNode->right->height;
+		leftheight = subNode->left == nullptr ? -1 : subNode->left->height;
+		if(rightheight > leftheight)
 			__double_rotate(startNode, true); // LR
 		else
 			__single_rotate(startNode, true); // LL
