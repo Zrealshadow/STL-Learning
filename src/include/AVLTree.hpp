@@ -38,21 +38,35 @@ class AVLTree
 
 		void __single_rotate(TreePointer startNode, bool isLL);
 		void __double_rotate(TreePointer startNode, bool isLR);
-
-
+		
+		//DEBUG
+		void __find_path_axu(TreePointer startNode ,T& v, std::vector<T> & p);
+		void __in_order_traversal(TreePointer startNode, std::vector<T> & p);
+		void __pre_order_traversal(TreePointer startNode, std::vector<T> & p);
+		void __clear_axu(TreePointer* startNodeAdd);
 	public:
 		AVLTree():root(nullptr){};
 		~AVLTree(){};
 		explicit AVLTree(const std::vector<T> & v);
 		void Insert(T v);
+		void Insert(std::vector<T> &p);
+
 		TreePointer find(T v);
 		void Erase(T v);
 		void Display();
 		int getHeight();
 		int getSize();
+		void Clear();
+
+		
 
 		// DEBUG
 		TreePointer getRoot();
+		std::vector<T> findPath(T v);
+
+		std::vector<T> in_order_traversal();
+		std::vector<T> pre_order_traversal();
+
 };
 #endif
 
@@ -79,6 +93,19 @@ void AVLTree<T>::Insert(T v){
 }
 
 template<class T>
+void AVLTree<T>::Insert(std::vector<T> &p){
+	for(unsigned int i = 0; i < p.size(); i++){
+		Insert(p.at(i));
+	}
+}
+
+template<class T>
+void AVLTree<T>::Clear(){
+	if(root == nullptr) return;
+	__clear_axu(&root);
+}
+
+template<class T>
 void AVLTree<T>::Erase(T v){
 	TreePointer eraseNode = __find_axu(root, v);
 	if(eraseNode == nullptr) {
@@ -87,7 +114,11 @@ void AVLTree<T>::Erase(T v){
 	}
 	// delete it
 	TreePointer eraseParentNode = eraseNode->prev;
-	TreePointer questionNode = __update_height(eraseNode);
+	
+	if(eraseParentNode->left == eraseNode) eraseParentNode->left = nullptr;
+	else eraseNode->right = nullptr;
+	delete eraseNode;
+	TreePointer questionNode = __update_height(eraseParentNode);
 	if(questionNode == nullptr) return;
 	__adjust_tree(questionNode);
 }
@@ -113,8 +144,38 @@ typename AVLTree<T>::TreePointer AVLTree<T>::getRoot(){
 	return root;
 }
 
+template<class T>
+std::vector<T> AVLTree<T>::findPath(T v){
+	std::vector<T> p;
+	__find_path_axu(root, v, p);
+	return p;
+}
+
+
 /* --------------------------- Private Helper Function -------------------------------*/
 
+template<class T>
+void AVLTree<T>::__find_path_axu(TreePointer startNode, T& v, std::vector<T>&p){
+	if(startNode == nullptr) {
+		p.clear();
+		return;
+	}
+	p.push_back(startNode->data);
+	TreePointer next = startNode->data > v ? startNode->left : startNode->right;
+	if(startNode->data == v) return;
+	return __find_path_axu(next, v, p);
+}
+
+template<class T>
+void AVLTree<T>::__clear_axu(TreePointer* startNodeAdd){
+	assert((*startNodeAdd) != nullptr);
+	TreePointer startNode = (*startNodeAdd);
+	if(startNode->left != nullptr) __clear_axu(&(startNode->left));
+	if(startNode->right != nullptr) __clear_axu(&(startNode->right));
+	// leaf node
+	delete startNode;
+	(*startNodeAdd) = nullptr;
+}
 
 // return the new inserted node
 // the startNode can not be nullptr
@@ -172,16 +233,18 @@ void AVLTree<T>::__adjust_tree(TreePointer startNode){
 	// have to judge single rotate or double rotate
 	if(startNode->right->height > startNode->left->height){
 		TreePointer subNode = startNode->right;
-		if(subNode->right->height > startNode->left->height) 
-			__single_rotate(startNode, false);  // RL
+		if(subNode->right->height > subNode->left->height) 
+			__single_rotate(startNode, false);  // RR
 		else
 			__double_rotate(startNode, false);   // RL
 	} else {
 		TreePointer subNode = startNode->left;
-		if(subNode->right->height > startNode->left->height)
+		if(subNode->right->height > subNode->left->height)
 			__double_rotate(startNode, true); // LR
 		else
 			__single_rotate(startNode, true); // LL
+		
+			
 	}
 
 }
@@ -247,7 +310,6 @@ void AVLTree<T>::__single_rotate(TreePointer startNode, bool isLL){
 		if(c != nullptr){
 			c->prev = a;
 		}
-
 	} else {
 		// RR
 		/*
@@ -274,7 +336,44 @@ void AVLTree<T>::__single_rotate(TreePointer startNode, bool isLL){
 	// adjust the height of startnode a
 	startNode->height--;
 	// adjust the parent tree's sub pointer
+	if(ParentNode == nullptr) {
+		root = b;
+		return;
+	}
 	if(ParentNode->right == startNode) ParentNode->right = b;
 	else ParentNode->left = b;
 	return;
+}
+
+
+/* ----------- TRAVERSAL --------------*/
+
+template<typename T>
+std::vector<T> AVLTree<T>::in_order_traversal(){
+	std::vector<T> p;
+	__in_order_traversal(root, p);
+	return p;
+}
+
+template<typename T>
+std::vector<T> AVLTree<T>::pre_order_traversal(){
+	std::vector<T> p;
+	__pre_order_traversal(root, p);
+	return p;
+}
+
+template<typename T>
+void AVLTree<T>:: __in_order_traversal(TreePointer startNode, std::vector<T> & p){
+	if(startNode == nullptr) return;
+	p.push_back(startNode->data);
+	__in_order_traversal(startNode->left, p);
+	__in_order_traversal(startNode->right, p);
+}
+
+template<typename T>
+void AVLTree<T>:: __pre_order_traversal(TreePointer startNode, std::vector<T> & p){
+	if(startNode == nullptr) return;
+	__pre_order_traversal(startNode->left, p);
+	p.push_back(startNode->data);
+	__pre_order_traversal(startNode->right, p);
 }
